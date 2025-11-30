@@ -912,16 +912,28 @@ public final class ScanFilter implements Parcelable {
          * serviceUuid}. Set any bit in the mask to 1 to indicate a match is needed for the bit in
          * {@code serviceUuid}, and 0 to ignore that bit.
          *
+         * <p>Both {@code serviceUuid} and {@code uuidMask} can be {@code null} to clear the filter.
+         *
+         * @param serviceUuid The service UUID to filter on, or {@code null} to clear the filter
+         * @param uuidMask The bit mask for the service UUID, or {@code null} if no mask is needed
          * @throws IllegalArgumentException If {@code serviceUuid} is {@code null} but {@code
-         *     uuidMask} is not {@code null}.
+         *     uuidMask} is not {@code null} (invalid: cannot have a mask without a UUID).
          */
         @RequiresNoPermission
         public Builder setServiceUuid(ParcelUuid serviceUuid, ParcelUuid uuidMask) {
-            if (uuidMask != null && serviceUuid == null) {
-                throw new IllegalArgumentException("uuid is null while uuidMask is not null!");
+            // Allow clearing the filter with (null, null)
+            if (serviceUuid == null) {
+                if (uuidMask != null) {
+                    throw new IllegalArgumentException("uuid is null while uuidMask is not null!");
+                }
+                // Both are null, clear the filter
+                mServiceUuid = null;
+                mUuidMask = null;
+            } else {
+                // Valid case: set both values
+                mServiceUuid = serviceUuid;
+                mUuidMask = uuidMask;
             }
-            mServiceUuid = serviceUuid;
-            mUuidMask = uuidMask;
             return this;
         }
 
